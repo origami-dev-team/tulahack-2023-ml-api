@@ -7,4 +7,3 @@ class Comics(BaseModel):
     url: str
     preview: str
     likes: int = Field(default=0)
-
