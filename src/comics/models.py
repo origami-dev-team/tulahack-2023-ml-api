@@ -5,5 +5,6 @@ class Comics(BaseModel):
     title: str
     author: str
     url: str
+    preview: str
     likes: int = Field(default=0)
 

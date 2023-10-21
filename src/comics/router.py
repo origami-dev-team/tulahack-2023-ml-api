@@ -1,9 +1,11 @@
+from random import randint
 from fastapi import APIRouter, UploadFile, Form
 from database import firestore
 from typing import Annotated, List
 from .models import Comics
+from sprite.models import Sprite
 from utils import id
-from constants import Collection
+from constants import Collection, SpriteCategory
 
 router = APIRouter()
 
@@ -16,7 +18,10 @@ async def get_all() -> List[Comics]:
 async def upload(title: Annotated[str, Form()], author: Annotated[str, Form()], file: UploadFile) -> Comics:
     file_id = id()
     url = await firestore.upload_file(file=file, folder=Collection.Comics, id=file_id)
-    comics = Comics(id=file_id, title=title, author=author, url=url) 
+    all = await firestore.get_all(collection=Collection.Sprite)
+    sprites = [Sprite(**one) for one in all if one["category"] == SpriteCategory.Background]
+    preview = [sprite.url for sprite in sprites][randint(0, len(sprites) - 1)]
+    comics = Comics(id=file_id, title=title, author=author, url=url, preview=preview) 
     sprite = await firestore.create(collection=Collection.Comics, data=comics.model_dump())
     return Comics(**sprite)
 
