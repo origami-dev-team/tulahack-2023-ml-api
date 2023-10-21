@@ -9,12 +9,12 @@ from constants import Collection, SpriteCategory
 
 router = APIRouter()
 
-@router.get("/")
+@router.get("")
 async def get_all() -> List[Comics]:
     all = await firestore.get_all(collection=Collection.Comics)
     return [Comics(**one) for one in all]
 
-@router.post("/")
+@router.post("")
 async def upload(title: Annotated[str, Form()], author: Annotated[str, Form()], file: UploadFile) -> Comics:
     file_id = id()
     url = await firestore.upload_file(file=file, folder=Collection.Comics, id=file_id)
@@ -25,4 +25,9 @@ async def upload(title: Annotated[str, Form()], author: Annotated[str, Form()], 
     sprite = await firestore.create(collection=Collection.Comics, data=comics.model_dump())
     return Comics(**sprite)
 
-    
+@router.post("/{id}/like")
+async def like(id: str) -> Comics:
+    comics = await firestore.get_one(collection=Collection.Comics, id=id)
+    comics["likes"] = comics["likes"] + 1
+    liked = await firestore.update(id=id, collection=Collection.Comics, data=comics)
+    return Comics(**liked)
